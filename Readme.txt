@@ -29,32 +29,24 @@ Documenation
         │  LICENSE
         │
         ├─Data
-        │      dye_ABS.msgz
-        │      dye_prop.msgz
-        │      sdb.msgz
-        │      train_idx.npy
-        │      uvdb.msgz
-        │      uvdb_trn.msgz
+        │      HOMO.txt
+        │      Mtx_trained.fsz
+        │      Stored_Curvs_5.8-5.1.z01
+        │      Stored_Curvs_5.8-5.1.zip
         │
 
     Functionality of files in each folder
 
-        dye_ABS.msgz            Absorption spectra of dyes (in solution)
-        dye_prop.msgz           Absorption spectra of dyes (in film)
-        sdb.msgz                CD spectra of films
-        train_idx.npy           The final training set used to train the forward prediction model
-        uvdb.msgz               Transmission spectra of dyed films
-        uvdb_trn.msgz           Transmission spectra of transparent films
+        requirements.txt        Installation requirement
+        DNA_opt_tgt_no.py       Script for DNA generation
 
         Data
             This folder contains the database used by other scripts.
             Files:
-                dye_ABS.msgz            Absorption spectra of dyes (in solution)
-                dye_prop.msgz           Absorption spectra of dyes (in film)
-                sdb.msgz                CD spectra of films
-                train_idx.npy           The final training set used to train the forward prediction model
-                uvdb.msgz               Transmission spectra of dyed films
-                uvdb_trn.msgz           Transmission spectra of transparent films
+                HOMO.txt                            List of DNAs
+                Mtx_trained.fsz                     Correlation between sequence and DOS 
+                Stored_Curvs_5.8-5.1.z01            DOS of DNAs part II
+                Stored_Curvs_5.8-5.1.zip            DOS of DNAs part I, need to unzip before use
         fs
             This folder contains the functional tools used by other scripts.
 
