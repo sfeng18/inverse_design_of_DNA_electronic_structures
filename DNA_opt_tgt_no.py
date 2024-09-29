@@ -11,17 +11,14 @@ str_usage = """\
 Usage: DNA_opt_tgt_no.py (MtxFile) (Options)
 Predict the sequence of DNA to mimic the DOS of target DNA.
 Options:
-    -nb num                 How many bits in energy range, default: 4
-    -rb bit_st bit_ed       Ranges of bits, default: 0 -1
     -eb start end           Ranges of energy(eV) , default: -5.6 -5.3
     -e start end            Ranges of energy(eV) in plotting, default: -5.8 -5.1
+    -m name_file            Name file convering shortname into full name, default: HOMO.txt
     -o figure_head          Default: Opt-Tgt
-    -edge len_ratio         Length of edges, Default: 0.25
-    -reverse                Allow reserving DNA to generate sequence
-    -skip                   Allow skipping failed DNA
+    -cf CurveFile           File containing DNA DOS curves
+    -l DNA_length           Default: 50
+    -tgt No1 (No2 ...)      Target DNA numbers, default: 10 random numbers
     -ATend                  Only allow start by 'A' end by 'T'
-    -ATfree                 Allow AT rich
-    -long01                 Let all 0/1 to be full range low/high
     -h                      Show this help page
     """
 
@@ -135,32 +132,24 @@ def solve_opt_tgt(
 if __name__ == "__main__":
 
     Num = {
-        '.': 1,
-        'nb': 1,
-        'rb': (1, 2),
+        '.': (0, 1),
         'eb': 2,
         'e': 2,
         'o': 1,
-        'edge': 1,
-        'db': 1,
+        'cf': 1,
         'm': 1,
         'l': 1,
         'tgt': (1, -1),
-        'reverse': 0,
-        'skip': 0,
         'ATend': 0,
-        'ATfree': 0,
-        'long01': 0,
     }
     Para_Dict = fs.get_para(sys.argv[1:], Num_Dict=Num, help=show_usage)
 
-    MtxFile = Para_Dict['.'][0]
+    MtxFile = Para_Dict['.'][0] if len(Para_Dict['.'])>0 else os.path.abspath('./data/Mtx_trained.fsz')
     Unit = 1.0 / fs.hartree
     Emin, Emax = (float(_) for _ in Para_Dict['eb']) if 'eb' in Para_Dict else (-5.6, -5.3)
     Emin_plt, Emax_plt = (float(_) for _ in Para_Dict['e']) if 'e' in Para_Dict else (-5.8, -5.1)
     Emin_ht, Emax_ht = (Emin * Unit, Emax * Unit)
     FigHead = Para_Dict['o'][0] if 'o' in Para_Dict else 'Opt-Tgt'
-    SKIP_ON = 'skip' in Para_Dict
     AT_END = 'ATend' in Para_Dict
     DNALen = int(Para_Dict['l'][0]) if 'l' in Para_Dict else 50
 
@@ -191,29 +180,23 @@ if __name__ == "__main__":
         HeadTailBase[name[0]][i] += 1
         HeadTailBase[name[-1]][i] -= 1
 
-    EvalDB = Para_Dict['db'][0] if 'db' in Para_Dict else 'Stored_Evals.fsz'
+    CurvDB = Para_Dict['cf'][0] if 'cf' in Para_Dict else os.path.abspath('./data/Stored_Curves_5.8-5.1.fsz')
 
-    DNAs_File = Para_Dict['m'][0] if 'm' in Para_Dict else 'HOMO.txt'
+    DNAs_File = Para_Dict['m'][0] if 'm' in Para_Dict else os.path.abspath('./data/HOMO.txt')
     DNAs = fs.read_DNA_info(DNAs_File)
     bmX = fs.energy_axis((Emin_plt * Unit, Emax_plt * Unit), MultiplyHartree=True)
     NbmX = len(bmX)
     print('bmX length: ', NbmX)
-    with fs.timer('Read basemode DNAs Evals'):
-        if os.path.isfile(EvalDB):
-            EvalsInfo = fs.read_file(EvalDB)[1]
-            DNAEvals = [EvalsInfo[d.EvalFile] if d.EvalFile in EvalsInfo.keys() else d.get_evals() for d in DNAs]
-            del EvalsInfo
+    with fs.timer('Read DNA curves'):
+        if os.path.isfile(CurvDB):
+            CurvData = fs.read_file(CurvDB)[1]
+            DNACurves = [CurvData[d.Base] for d in DNAs]
         else:
-            DNAEvals = fs.run_functions([(fs.DNA_sequence.get_evals, (d,)) for d in DNAs])
+            raise RuntimeError('ERROR: File of DNA curves not found!')
 
-    with fs.timer('Calculate basemode DNAs curves'):
-        DNACurves = fs.run_functions([(fs.level2curve, (ev, (Emin_plt * Unit, Emax_plt * Unit)), {'Norm': True, 'YOnly': True}) for ev in DNAEvals])
-        # del DNAs
-        del DNAEvals
-
-    test_DNAs = [(i, d) for i, d in enumerate(DNAs) if d.Base not in DNATrained]
+    test_DNAs = [(i, d) for i, d in enumerate(DNAs)]
     N_test = len(test_DNAs)
-    print(f'{N_test} DNAs in test set.')
+    print(f'{N_test} DNAs in total.')
 
     if 'tgt' in Para_Dict:
         pick_DNA_Nos = [int(_) for _ in Para_Dict['tgt']]
@@ -224,8 +207,8 @@ if __name__ == "__main__":
         pick_DNAs = [(i, *test_DNAs[i]) for i in pick_Nos]
     AllTypes = []
     for i, test_No, test_DNA in pick_DNAs:
-        print(f'{i} in test set, DNA No. {test_No}\n{test_DNA.Base}')
-        OutputLines = [f'{i} in test set, DNA No. {test_No}\n{test_DNA.Base}\n']
+        print(f'DNA No. {test_No}\n{test_DNA.Base}')
+        OutputLines = [f'DNA No. {test_No}\n{test_DNA.Base}\n']
         my_curve = DNACurves[test_No]
         my_curve_BMx = np.interp(BMx, bmX, my_curve)
         TgtCurve = my_curve_BMx[idx_fit]
@@ -276,7 +259,7 @@ if __name__ == "__main__":
             LengthScale = 50 / DNALen
             MyCurve *= LengthScale
             MyCurve_TagRange = MyCurve[idx_fit]
-            My_Error = np.sum(np.abs(MyCurve_TagRange - TgtCurve))
+            My_Error = np.sum(np.abs(MyCurve_TagRange - TgtCurve)) / np.sum(TgtCurve)
             Errors.append(My_Error)
             Texts.append(f"{t}: {My_Error}" + '\n' + ' '.join(CoefText))
             Out_Texts.append(f"{t}: {My_Error}" + "\n" + '\n'.join(CoefText))
