@@ -31,8 +31,7 @@ Documenation
         ├─Data
         │      HOMO.txt
         │      Mtx_trained.fsz
-        │      Stored_Curvs_5.8-5.1.z01
-        │      Stored_Curvs_5.8-5.1.zip
+        │      Stored_Curves_5.8-5.1.fsz
         │
 
     Functionality of files in each folder
@@ -45,8 +44,7 @@ Documenation
             Files:
                 HOMO.txt                            List of example DNAs
                 Mtx_trained.fsz                     Correlation between sequence and DOS 
-                Stored_Curvs_5.8-5.1.z01            DOS of example DNAs part II
-                Stored_Curvs_5.8-5.1.zip            DOS of example DNAs part I, need to unzip before use
+                Stored_Curves_5.8-5.1.fsz            DOS of example DNAs
         fs
             This folder contains the functional tools used by other scripts.
     
