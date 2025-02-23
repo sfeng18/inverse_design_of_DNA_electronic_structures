@@ -99,6 +99,8 @@ Documenation
         2. DNA_opt_mix.py: Target DOS is a mixture of two DNAs.
         3. DNA_opt_complex.py: Target DOS is a complex bit-like curve.
 
+        NOTE: To run these scripts successfully, you need a lisence of MOSEK software. You can obtain the license from https://www.mosek.com/.
+
         Usage:
             DNA_opt_tgt_no.py (MtxFile) (Options)
             Options:
@@ -147,18 +149,18 @@ Documenation
                 -h                      Show this help page
 
         Examples:
-        # First, you need to change the directory to Sequence_generation
-        >cd Sequence_generation
-        # Then, you can run the script with the target DNA number
-        >DNA_opt_tgt_no.py -tgt 582 364
-        # Or, you can run the script with the target DNA pairs
-        >DNA_opt_mix.py -pair 40 291
-        # Or, you can run the script with the target DNA complex curve, like a 010 3-bit curve
-        >DNA_opt_complex.py -o Fit -eV -mix -ns -freestyle d -5.4 -5.3 u -5.5 -5.4 d -5.6 -5.5
-        # The script will generate a DNA with length 50 by default. If you want to generate a DNA with a different length, you can use the -l option. For example:
-        >DNA_opt_complex.py -o Fit-20bp -l 20 -eV -mix -ns -freestyle d -5.6 -5.55 u -5.5 -5.4
-        # A much more complex curve can be designed by using the -freestyle option. For example:
-        >DNA_opt_complex.py -o Fit-b6 -notext -eV -mix -ns -freestyle u -5.65 -5.583 u -5.583 -5.516 u -5.516 -5.45 d -5.45 -5.383 u -5.383 -5.316 d -5.316 -5.25
+            # First, you need to change the directory to Sequence_generation
+            >cd Sequence_generation
+            # Then, you can run the script with the target DNA number
+            >DNA_opt_tgt_no.py -tgt 582 364
+            # Or, you can run the script with the target DNA pairs
+            >DNA_opt_mix.py -pair 40 291
+            # Or, you can run the script with the target DNA complex curve, like a 010 3-bit curve
+            >DNA_opt_complex.py -o Fit -eV -mix -ns -freestyle d -5.4 -5.3 u -5.5 -5.4 d -5.6 -5.5
+            # The script will generate a DNA with length 50 by default. If you want to generate a DNA with a different length, you can use the -l option. For example:
+            >DNA_opt_complex.py -o Fit-20bp -l 20 -eV -mix -ns -freestyle d -5.6 -5.55 u -5.5 -5.4
+            # A much more complex curve can be designed by using the -freestyle option. For example:
+            >DNA_opt_complex.py -o Fit-b6 -notext -eV -mix -ns -freestyle u -5.65 -5.583 u -5.583 -5.516 u -5.516 -5.45 d -5.45 -5.383 u -5.383 -5.316 d -5.316 -5.25
 
 
 
