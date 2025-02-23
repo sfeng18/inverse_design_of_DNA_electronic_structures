@@ -14,7 +14,7 @@ from scipy import linalg as LA
 from copy import deepcopy
 
 from .data import deg2rad, Elements, Elem_Radius, AA_List, NA_List, AA2single, NA2single, Base_List, Base2num, RNABase2num, RNABase_List, Base64, Base64_Dict, NA_base, DNA_pair, RNA_pair, DNA_base2name, RNA_base2name, helix_dict
-from .core import sep_num_abc, atom_no, atom_type, find_all, get_ext, bond_chk
+from .core import sep_num_abc, atom_no, atom_type, find_all, get_ext, bond_chk, LongestCommonSublist
 from .fileIO import IO_File, read_file, read_txt_lines, load_fsz_thread, load_xyz, save_xyz, info_file
 
 
@@ -371,7 +371,7 @@ class molecule(object):
             save_xyz(FileName + '.xyz', np.array(XyzData))
 
     @classmethod
-    def load_from_file(cls, FileName,verbose=False):
+    def load_from_file(cls, FileName, verbose=False):
         """Get a new molecule from .pdb or .fsmol file"""
         # Name, Ext = get_ext(FileName, ReturnName=True)
         Ext = get_ext(FileName)
@@ -632,11 +632,11 @@ class pdb_file(IO_File):
                         atm_name = atm.Name.upper()
                         if len(atm_name) < 4 and len(atom_type(atm.Elem)) == 1:
                             atm_name = ' ' + atm_name
-                        s_atmid = '%5d '%atm.Id if atm.Id<100000 else '%6d'%atm.Id
-                        s_resid = '%4d '%res.Id if res.Id<10000 else '%5d'%res.Id
-                        s_coorx = '%8.3f'%atm.Coor[0] if -1000<atm.Coor[0]<10000 else '%8.2f'%atm.Coor[0]
-                        s_coory = '%8.3f'%atm.Coor[1] if -1000<atm.Coor[1]<10000 else '%8.2f'%atm.Coor[1]
-                        s_coorz = '%8.3f'%atm.Coor[2] if -1000<atm.Coor[2]<10000 else '%8.2f'%atm.Coor[2]
+                        s_atmid = '%5d ' % atm.Id if atm.Id < 100000 else '%6d' % atm.Id
+                        s_resid = '%4d ' % res.Id if res.Id < 10000 else '%5d' % res.Id
+                        s_coorx = '%8.3f' % atm.Coor[0] if -1000 < atm.Coor[0] < 10000 else '%8.2f' % atm.Coor[0]
+                        s_coory = '%8.3f' % atm.Coor[1] if -1000 < atm.Coor[1] < 10000 else '%8.2f' % atm.Coor[1]
+                        s_coorz = '%8.3f' % atm.Coor[2] if -1000 < atm.Coor[2] < 10000 else '%8.2f' % atm.Coor[2]
                         f.write('ATOM  %6s%-4s%1s%3s %1s%5s   %8s%8s%8s%6.2f%6.2f      %4s%2s%2s\n' % (
                             s_atmid,
                             atm_name,
@@ -777,7 +777,7 @@ class gro_file(IO_File):
 class DNA_sequence(object):
     """Sequence (5'->3') and name of DNA. Every 3 bases is represented by a 64-base number ('0-9A-Za-z@%')"""
 
-    def __init__(self, N=0, BASE='', NAME='', SHORTNAME='', EVALFILE=''):
+    def __init__(self, N=0, BASE='', NAME='', SHORTNAME='', EVALFILE='', NAMESTR=''):
         self.NBase = N
         self.Base = BASE
         self.Name = NAME
@@ -785,6 +785,7 @@ class DNA_sequence(object):
         self.HOMO = -1
         self.EvalFile = EVALFILE
         self.Evals = []
+        self.NameStr = NAMESTR
         self.Car = ''
 
     def __str__(self):
@@ -901,6 +902,7 @@ class RNA_sequence(object):
         """Get a new DNA from 64-base name"""
         return cls(N, cls.name2base(NAME, N), NAME, SHORTNAME, EVALFILE)
 
+
 def rand_seq(Len, NA):
     """Random sequence of DNA with length Len"""
     return ''.join([NA[_] for _ in np.random.randint(0, len(NA), Len)])
@@ -908,6 +910,7 @@ def rand_seq(Len, NA):
 
 def reverse_seq(s):
     return ''.join([DNA_pair[_] for _ in s[::-1]])
+
 
 def reverse_RNA_seq(s):
     return ''.join([RNA_pair[_] for _ in s[::-1]])
@@ -930,8 +933,10 @@ def read_DNA_info(File, EvalsDB=None):
         d.HOMO = int(x[1])
         if d.EvalFile in Data.keys():
             d.Evals = Data[d.EvalFile]
+        d.NameStr = '\t'.join(x)
         DNAs.append(d)
     return DNAs
+
 
 def read_RNA_info(File, EvalsDB=None):
     """Read RNA sequence, name, evals_filename from File, and evals from EvalsDB (if provided)"""
@@ -952,6 +957,7 @@ def read_RNA_info(File, EvalsDB=None):
             d.Evals = Data[d.EvalFile]
         RNAs.append(d)
     return RNAs
+
 
 def find_DNA(Tag_DNA, DNAs):
     """Search for single DNA from known DNAs, return the DNA if found."""
@@ -1586,8 +1592,10 @@ def save_NA(Name, Seq, NAType, SaveXyz=False):
         #     XyzData.append([atm.Id, atm.Elem, 0, atm.Coor[0], atm.Coor[1], atm.Coor[2]])
         save_xyz(Name + '.xyz', np.array(XyzData))
 
+
 def save_DNA(*args, **kwargs):
     save_NA(*args, **kwargs)
+
 
 InfoFormat = ('%s_Info.txt', 'infos' + os.sep + '%s_Info.txt')
 NameFileFormat = {
@@ -1841,4 +1849,42 @@ def sec2seq(coefs, DEBUG=False, REVERSE=False):
     return FinalSeq
 
 
+def base_diff(base1, base2):
+    """Calculate the difference between two bases"""
+    if base1 == base2:
+        return 0
+    else:
+        base_set = set(base1 + base2)
+        if base_set == set('AT'):
+            return 0.1
+        elif base_set == set('GC'):
+            return 0.5
+        else:
+            return 1
 
+
+def compare_seq_diff(seq1, seq2):
+    """Compare two DNA sequences"""
+    single_base_diff = {'A': 0.1, 'T': 0.1, 'G': 1, 'C': 1}
+    diff_list = []
+    l1 = len(seq1)
+    l2 = len(seq2)
+    if l1 >= l2:
+        diff_list += [base_diff(seq1[i], seq2[i]) for i in range(l2)]
+        diff_list += [single_base_diff(seq1[_]) for _ in range(l2, l1)]
+    else:
+        diff_list += [base_diff(seq1[i], seq2[i]) for i in range(l1)]
+        diff_list += [single_base_diff(seq2[_]) for _ in range(l1, l2)]
+    return np.sum(diff_list)
+
+
+def seq_dist(seq1, seq2):
+    """Calculate the distance between two DNA sequences"""
+    l_common, (comm_pos1, comm_pos2) = LongestCommonSublist(seq1, seq2)
+    dist = 0
+    if l_common:
+        dist += compare_seq_diff(seq1[comm_pos1:], seq2[comm_pos2:])
+        dist += compare_seq_diff(seq1[:comm_pos1 - l_common:-1], seq2[:comm_pos2 - l_common:-1])
+    else:
+        dist += compare_seq_diff(seq1, seq2)
+    return dist

@@ -54,7 +54,7 @@ class job_info(object):
             self.PId = os.getpid()
             self.Queue = 'UNKOWN'
             self.Name = 'UNKOWN'
-            self.MaxCPU = int(os.environ["NUMBER_OF_PROCESSORS"]) if "NUMBER_OF_PROCESSORS" in os.environ else mp.cpu_count()
+            self.MaxCPU = int(os.environ["NUMBER_OF_PROCESSORS"]) if "NUMBER_OF_PROCESSORS" in os.environ else psutil.cpu_count()
         self.CPUAvail = self.MaxCPU
         self.TotalMem = psutil.virtual_memory().total
 

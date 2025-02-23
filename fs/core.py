@@ -379,7 +379,7 @@ def LongestCommonSublist(List1, List2):
     len2 = len(List2)
     if len1 == 0 or len2 == 0:
         return 0, 0
-    mtx = np.zeros([len1 + 1, len2 + 1], dtype=np.int)
+    mtx = np.zeros([len1 + 1, len2 + 1], dtype=int)
     Lmax = 0
     for i in range(len1):
         for j in range(len2):

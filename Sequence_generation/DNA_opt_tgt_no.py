@@ -144,7 +144,7 @@ if __name__ == "__main__":
     }
     Para_Dict = fs.get_para(sys.argv[1:], Num_Dict=Num, help=show_usage)
 
-    MtxFile = Para_Dict['.'][0] if len(Para_Dict['.'])>0 else os.path.abspath('./data/Mtx_trained.fsz')
+    MtxFile = Para_Dict['.'][0] if len(Para_Dict['.'])>0 else os.path.abspath('../data/Mtx_trained.fsz')
     Unit = 1.0 / fs.hartree
     Emin, Emax = (float(_) for _ in Para_Dict['eb']) if 'eb' in Para_Dict else (-5.6, -5.3)
     Emin_plt, Emax_plt = (float(_) for _ in Para_Dict['e']) if 'e' in Para_Dict else (-5.8, -5.1)
@@ -180,9 +180,9 @@ if __name__ == "__main__":
         HeadTailBase[name[0]][i] += 1
         HeadTailBase[name[-1]][i] -= 1
 
-    CurvDB = Para_Dict['cf'][0] if 'cf' in Para_Dict else os.path.abspath('./data/Stored_Curves_5.8-5.1.fsz')
+    CurvDB = Para_Dict['cf'][0] if 'cf' in Para_Dict else os.path.abspath('../data/Stored_Curves_5.8-5.1.fsz')
 
-    DNAs_File = Para_Dict['m'][0] if 'm' in Para_Dict else os.path.abspath('./data/HOMO.txt')
+    DNAs_File = Para_Dict['m'][0] if 'm' in Para_Dict else os.path.abspath('../data/HOMO.txt')
     DNAs = fs.read_DNA_info(DNAs_File)
     bmX = fs.energy_axis((Emin_plt * Unit, Emax_plt * Unit), MultiplyHartree=True)
     NbmX = len(bmX)

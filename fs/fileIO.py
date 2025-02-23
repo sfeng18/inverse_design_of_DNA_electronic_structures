@@ -256,7 +256,7 @@ def load_fsz_thread(Input_Name, PoolSize=Job.CPUAvail, AlwaysReturnDict=False):
         data_pack = msgpack.load(f, use_list=False, **msg_load_kwarg)
     DataDict = {}
     for k, v in data_pack.items():
-        if isinstance(v, tuple) and v[0] == b'ndarray' and len(v) == 5:
+        if isinstance(v, tuple) and len(v) == 5 and v[0] == b'ndarray':
             DataShape, TypeCode, FragIdxs, data_compressed = v[1:]
             DataType = typecode_to_dtype[TypeCode]
             if len(FragIdxs) > 1:

@@ -54,11 +54,14 @@ def level2curve(EnergyLevel, Range, GHalf=0.001, Weight=None, Norm=False, Lorent
     X = np.arange(Emin - SpreadLength, Emax + SpreadLength, dE)
     idx_out = np.where((X >= Emin) & (X <= Emax))[0]
     Y = np.zeros_like(X)
+    X_len = len(X)
 
     if Weight is not None:
         assert len(Weight) == len(EnergyLevel), 'ERROR: Length of Weight and EnergyLevel not equal (%d != %d).\n' % (len(Weight), len(EnergyLevel))
+        Weight = np.array(Weight)
     else:
         Weight = np.ones_like(EnergyLevel)
+    EnergyLevel = np.array(EnergyLevel)
     idx = np.where((EnergyLevel >= Emin - SpreadLength) & (EnergyLevel <= Emax + SpreadLength))[0]
     ED = EnergyLevel[idx]
     pos_list = np.zeros((len(ED), 4))
@@ -69,10 +72,20 @@ def level2curve(EnergyLevel, Range, GHalf=0.001, Weight=None, Norm=False, Lorent
     pos_list[pos_list[:, 0] < 0, 0] = 0
     pos_list[pos_list[:, 1] > gaussN, 1] = gaussN
     pos_list[pos_list[:, 2] < 0, 2] = 0
-    pos_list[pos_list[:, 3] > len(X), 3] = len(X)
+    pos_list[pos_list[:, 3] > X_len, 3] = X_len
     pos_list[:, 3] += pos_list[:, 1] - pos_list[:, 0] - pos_list[:, 3] + pos_list[:, 2]
     for w, pos in zip(Weight[idx], pos_list.astype(int)):
-        Y[pos[2]:pos[3]] += w * gaussY[pos[0]:pos[1]]
+        if pos[3] > X_len:
+            pos[1] -= pos[3] - X_len
+            pos[3] = X_len
+        try:
+            Y[pos[2]:pos[3]] += w * gaussY[pos[0]:pos[1]]
+        except:
+            print(f'len X: {len(X)}, len Y: {len(Y)}, len gaussY: {len(gaussY)}')
+            print(f'w: {w}, pos: {pos}')
+            print(f'Y[pos[2]:pos[3]]: {Y[pos[2]:pos[3]]}')
+            print(f'gaussY[pos[0]:pos[1]]: {gaussY[pos[0]:pos[1]]}')
+            raise
     if Norm:
         Y /= len(EnergyLevel)
     if YOnly:
@@ -244,6 +257,8 @@ def fig_double_y(
     plt.savefig(FileName, dpi=300)
     if PDF:
         plt.savefig(FileName[:FileName.rfind('.')] + '.pdf', dpi=300)
+    print('Successfully saved figure: ', FileName)
+    plt.close()
 
 
 def fig_XYList(
@@ -340,6 +355,7 @@ def fig_XYList(
     if PDF and FileName[-4:] != '.pdf':
         plt.savefig(FileName[:FileName.rfind('.')] + '.pdf', dpi=300)
     print('Successfully saved figure: ', FileName)
+    plt.close()
 
 
 def fig_XYMtx(
@@ -433,6 +449,7 @@ def fig_XYMtx(
     if PDF and FileName[-4:] != '.pdf':
         plt.savefig(FileName[:FileName.rfind('.')] + '.pdf', dpi=300)
     print('Successfully saved figure: ', FileName)
+    plt.close()
 
 
 def fig_dos(
@@ -534,6 +551,7 @@ def fig_dos_energylevel(
     if PDF and FileName[-4:] != '.pdf':
         plt.savefig(FileName[:FileName.rfind('.')] + '.pdf', dpi=300)
     print('Successfully saved figure: ', FileName)
+    plt.close()
 
 
 def fig_energylevel(
@@ -564,6 +582,7 @@ def fig_energylevel(
     plt.legend(fontsize=TickSize)
     plt.savefig(FileName, dpi=300)
     print('Successfully saved figure: ', FileName)
+    plt.close()
 
 
 def fig_hist(
@@ -602,6 +621,7 @@ def fig_hist(
     plt.yticks(fontsize=TickSize)
     plt.savefig(FileName, dpi=300)
     print('Successfully saved figure: ', FileName)
+    plt.close()
 
 
 def fig_mtx(
@@ -641,6 +661,7 @@ def fig_mtx(
     cbar.ax.tick_params(labelsize=TickSize)
     plt.savefig(FileName, dpi=300)
     print('Successfully saved figure: ', FileName)
+    plt.close()
 
 
 def fig_points(
@@ -695,6 +716,7 @@ def fig_points(
     #     plt.rcParams['font.family'] = 'Calibri'
     plt.savefig(FileName, dpi=300)
     print('Successfully saved figure: ', FileName)
+    plt.close()
 
 
 def fig_points_hist(
@@ -774,6 +796,7 @@ def fig_points_hist(
     ax_histy.hist(y, bins=bins, orientation='horizontal')
     plt.savefig(FileName, dpi=300)
     print('Successfully saved figure: ', FileName)
+    plt.close()
 
 
 def fig_shadow(
